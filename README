@@ -1,0 +1,47 @@
+# Sprint 2 — Mémoire longue
+
+## Objectif
+
+Que le bot se souvienne de ce qu'on lui a dit dans des sessions précédentes.
+Autrement dit : fermer la CLI, la rouvrir, lui demander "sur quel projet
+je bosse ?" et obtenir une réponse correcte.
+
+## Ce qui a été fait
+
+- `atlas/memory.py` : classe `LongTermMemory` qui encapsule ChromaDB
+  en mode PersistentClient.
+- Fonction `should_search_memory()` pour décider quand interroger la
+  mémoire (éviter les recherches inutiles sur les messages triviaux).
+- `scripts/context_window_test.py` : un script qui lance un dialogue de
+  50 tours et mesure combien de tokens on envoie à chaque itération,
+  pour visualiser pourquoi on a besoin d'une mémoire externe.
+- Commandes CLI ajoutées : `/forget`, `/memory`.
+
+## Choix de stratégie
+
+Quatre questions à trancher, voici ce qu'on a retenu et pourquoi :
+
+**Qu'est-ce qu'on stocke ?**
+La paire question/réponse complète, pas juste la réponse.
+Sinon la recherche sémantique ramène des bouts de texte sans contexte.
+
+**Quand on cherche en mémoire ?**
+Uniquement si le message fait moins de 40 caractères (probable question de
+suivi) OU contient un mot-clé de rappel (projet, client, travaille, hier…).
+Ça évite d'embedder "écris-moi une fonction Python" qui n'a rien à voir
+avec la mémoire.
+
+**Combien de souvenirs on injecte ?**
+Top 3 avec un seuil de similarité de 0.3. Plus que ça, on pollue le contexte.
+
+**Les doublons ?**
+On trie par similarité puis par timestamp descendant. Si deux souvenirs
+sont aussi pertinents, le plus récent gagne.
+
+## Stockage
+
+ChromaDB écrit sur disque dans `./data/memory/`. Le dossier est ignoré
+par Git. Les embeddings sont produits par le modèle par défaut de
+ChromaDB (all-MiniLM-L6-v2), pas besoin d'installer sentence-transformers.
+
+## Test du critère d'acceptation
