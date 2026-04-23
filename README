@@ -1,0 +1,57 @@
+# Sprint 3 — Monitoring et guardrails
+
+## Objectif
+
+Deux choses : savoir ce qui se passe (traces) et éviter les dérives
+(filtres en entrée).
+
+## Ce qui a été fait
+
+### Monitoring (Voie A — JSONL maison)
+
+- `atlas/monitoring.py` : une fonction `log_trace()` qui écrit une ligne
+  JSON par interaction dans `logs/traces.jsonl`.
+- `scripts/analyze_traces.py` : un script pandas qui sort les métriques
+  agrégées (latence médiane/p95, top 5 des plus lentes, tokens par jour,
+  sessions ayant utilisé la mémoire, coût estimé si on était passé par
+  GPT-4o).
+
+Choix Voie A plutôt que Langfuse : un prototype d'une journée sans
+infra Docker. Pour un vrai projet long terme, Langfuse serait plus
+adapté (traces hiérarchiques, dashboards partagés).
+
+### Guardrails
+
+`atlas/guardrails.py` implémente 4 règles, toutes activables/désactivables
+via `config/guardrails.yaml` :
+
+1. **PII detection** : regex sur CB, email, IBAN, numéro de sécu.
+   Masquage, pas blocage — le message continue vers le LLM avec
+   `[CREDIT_CARD_REDACTED]` à la place du numéro.
+2. **Prompt injection** : détection de patterns connus
+   ("ignore previous instructions", "tu es maintenant", etc.). Blocage.
+3. **Blocked topics** : liste de sujets interdits en config. Blocage.
+4. **Length limit** : refus des messages trop longs.
+
+## Politique RGPD des traces
+
+Les messages utilisateurs ne sont **jamais stockés en clair** dans les logs.
+On stocke un preview tronqué à 80 caractères et seulement après passage
+dans les guardrails (donc avec les PII déjà masquées).
+
+Si on voulait être plus strict, on pourrait passer à un hash SHA256
+uniquement, mais on perdrait la possibilité de debug.
+
+## Tests
+
+9 tests unitaires, dont 7 sur les guardrails et 2 sur le monitoring.
+
+```bash
+pytest tests/ -v
+```
+
+Le test clé pour le critère d'acceptation :
+`test_cb_est_masquee_et_autorisee` — vérifie que `4532015112830366`
+est bien remplacé par `[CREDIT_CARD_REDACTED]` avant tout appel au LLM.
+
+## Démo
