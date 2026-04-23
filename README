@@ -1,0 +1,46 @@
+# Atlas
+
+Assistant IA local pour ATLAS Consulting. Tourne sur Ollama, garde la mémoire
+des conversations passées, filtre les entrées sensibles, loggue chaque interaction.
+
+## Pourquoi
+
+La direction refuse d'envoyer des données clients à OpenAI/Anthropic/Mistral Cloud.
+Donc tout tourne en local. C'est plus lent mais rien ne sort de la machine.
+
+## Stack
+
+- Ollama pour le LLM (llama3.2:3b par défaut)
+- ChromaDB pour la mémoire longue
+- Typer pour la CLI
+- Pydantic pour valider la config
+
+## Installation rapide
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate          # Windows
+pip install -e .
+ollama pull llama3.2:3b
+ollama create atlas -f Modelfile
+atlas-chat
+```
+
+## Utilisation
+
+```bash
+atlas-chat                      # lance la boucle interactive
+```
+
+Dans la CLI :
+- `/quit` pour sortir
+- `/forget` pour vider la mémoire longue
+- `/memory` pour voir combien de souvenirs sont stockés
+- `/config` pour afficher la config active
+
+## Configuration
+
+Tout se passe dans `config/atlas.yaml`. Changer la température ou le modèle
+ne demande pas de toucher au code.
+
+## Structure
