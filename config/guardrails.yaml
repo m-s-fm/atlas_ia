@@ -1,0 +1,19 @@
+pii_detection:
+  enabled: true
+
+blocked_topics:
+  enabled: true
+  topics: [politique, religion, armes]
+
+length_limit:
+  enabled: true
+  max_words: 500
+
+
+prompt_injection:
+  enabled: true
+  patterns:
+    - "ignore previous instructions"
+    - "ignore toutes les instructions"
+    - "tu es maintenant"
+    - "<|system|>"
