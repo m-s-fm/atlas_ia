@@ -1,0 +1,34 @@
+# Sprint 1 — CLI qui parle à Ollama
+
+## Objectif du sprint
+
+Avoir une commande `atlas-chat` qui ouvre une boucle interactive et parle
+à un modèle local via Ollama. L'historique des messages doit tenir pendant
+la session.
+
+## Ce qui a été fait
+
+- `atlas/llm.py` : un wrapper HTTP autour de l'API Ollama, écrit avec httpx.
+  On n'a pas utilisé la lib `ollama-python` pour bien comprendre le transport.
+- `atlas/cli.py` : une CLI Typer avec une boucle `while True`.
+- `pyproject.toml` : entry point `atlas-chat`.
+
+## Détails techniques
+
+L'API Ollama (`/api/chat`) est stateless côté serveur. C'est le client qui
+garde l'historique et le renvoie complet à chaque tour. C'est ce qui permet
+au modèle d'avoir du contexte sur plusieurs questions.
+
+Le wrapper supporte deux modes :
+- `chat()` : bloquant, retourne tout d'un coup
+- `chat_stream()` : streaming, yield les tokens au fur et à mesure (NDJSON)
+
+## Configuration disponible au S1
+
+Par flags CLI :
+- `--model` (ex: `--model gemma3:1b`)
+- `--timeout`
+
+## Test du critère d'acceptation
+
+Trois questions dépendantes, la troisième doit toujours avoir le contexte :
