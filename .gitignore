@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+*.egg
+build/
+dist/
+
+# Environnements virtuels
+.venv/
+venv/
+env/
+
+# Tests & outils
+.pytest_cache/
+.coverage
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Atlas — données locales et logs
+data/
+logs/
+*.jsonl
+
+# Secrets (important pour S3 avec Langfuse)
+.env
+.env.local
+*.key
