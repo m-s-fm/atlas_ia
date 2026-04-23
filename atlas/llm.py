@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from typing import Iterator
+from typing import Any, Iterator
 
 import httpx
 
@@ -19,25 +19,27 @@ class OllamaClient:
         model: str = "llama3.2:3b",
         base_url: str = "http://localhost:11434",
         timeout: float = 60.0,
+        options: dict[str, Any] | None = None,
     ) -> None:
+        """
+        options : dict Ollama (temperature, top_p, num_ctx, etc.).
+        Voir https://github.com/ollama/ollama/blob/main/docs/modelfile.md#parameter
+        """
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
+        self.options = options or {}
+
+    def _payload(self, messages: list[dict], stream: bool) -> dict:
+        payload = {"model": self.model, "messages": messages, "stream": stream}
+        if self.options:
+            payload["options"] = self.options
+        return payload
 
     def chat(self, messages: list[dict]) -> dict:
-        """Appel bloquant. Retourne la réponse JSON complète d'Ollama.
-
-        `messages` suit le format OpenAI : [{"role": "user"|"assistant"|"system",
-                                              "content": "..."}]
-        """
         url = f"{self.base_url}/api/chat"
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            "stream": False,
-        }
         with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(url, json=payload)
+            response = client.post(url, json=self._payload(messages, stream=False))
             response.raise_for_status()
             return response.json()
 
@@ -47,13 +49,8 @@ class OllamaClient:
         Ollama renvoie du NDJSON : une ligne JSON par chunk.
         """
         url = f"{self.base_url}/api/chat"
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            "stream": True,
-        }
         with httpx.Client(timeout=self.timeout) as client:
-            with client.stream("POST", url, json=payload) as response:
+            with client.stream("POST", url, json=self._payload(messages, stream=True)) as response:
                 response.raise_for_status()
                 for line in response.iter_lines():
                     if not line:
