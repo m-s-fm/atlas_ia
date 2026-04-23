@@ -67,3 +67,11 @@ pas. Utile pour un premier setup sur une nouvelle machine.
 
 - Le bonus LoRA Colab (fine-tuning sur dataset métier). Pas le temps
   sur une journée, et pas critique pour le critère d'acceptation.
+
+
+Q1 — Où vit le system prompt ?
+Dans les deux : le Modelfile garantit le persona même hors CLI, le YAML permet d'itérer sans recréer le modèle.
+Q2 — Impact si on change le YAML mais pas le Modelfile ?
+Via notre CLI, le YAML gagne (il écrase le Modelfile pour la session) ; en ollama run atlas direct, seul le Modelfile s'applique → divergence possible, assumée.
+Q3 — La CLI pointe vers atlas ou llama3.2:3b ?
+Vers atlas, pour avoir un seul point de bascule quand on veut changer de base ou passer à un modèle fine-tuné.
