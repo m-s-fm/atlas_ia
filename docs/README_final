@@ -1,0 +1,37 @@
+# Documentation Atlas
+
+Atlas est un assistant IA local pour ATLAS Consulting. Tout tourne sur la
+machine de l'utilisateur, aucune donnée ne sort vers un fournisseur externe.
+
+Ce dossier rassemble la doc nécessaire pour comprendre, installer, exploiter
+et maintenir le projet.
+
+## Par où commencer
+
+Selon votre rôle :
+
+- **Je veux juste l'utiliser** → [installation.md](installation.md), puis
+  la section "Utilisation" du README à la racine du repo.
+- **Je vais reprendre le dev** → [architecture.md](architecture.md) si
+  présent, sinon [configuration.md](configuration.md) et le code dans `atlas/`.
+- **Sécurité ou conformité** → [governance.md](governance.md) puis
+  [security.md](security.md).
+- **Run et exploitation** → [operations.md](operations.md) et
+  [monitoring.md](monitoring.md).
+
+## Table des matières
+
+| Fichier | Contenu |
+|---|---|
+| [installation.md](installation.md) | Mise en route pas à pas sur machine vierge |
+| [configuration.md](configuration.md) | Options YAML exposées et leur effet |
+| [monitoring.md](monitoring.md) | Format des traces, analyse, métriques produites |
+| [governance.md](governance.md) | Guardrails, politique RGPD, rétention |
+| [operations.md](operations.md) | Runbook : démarrer, purger, rollback, dépannage |
+| [security.md](security.md) | Modèle de menaces et décisions de sécurité |
+
+## Conventions
+
+- Les chemins sont relatifs à la racine du projet (là où vit `pyproject.toml`).
+- Les exemples Windows utilisent PowerShell, les exemples Unix utilisent bash.
+- Les commandes supposent que le venv est activé.
