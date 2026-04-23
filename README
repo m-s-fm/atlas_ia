@@ -1,0 +1,69 @@
+# Sprint 4 — Configuration
+
+## Objectif
+
+Paramétrer le comportement d'Atlas sans avoir à toucher au code.
+Changer la température ou le modèle ne doit demander qu'un `git diff`
+sur un fichier YAML.
+
+## Ce qui a été fait
+
+### Niveau 1 — Config YAML + validation Pydantic
+
+- `config/atlas.yaml` : source unique de vérité (modèle, persona,
+  mémoire, guardrails, monitoring).
+- `atlas/config.py` : schéma Pydantic qui charge et valide le YAML.
+- La CLI lit la config au démarrage, toutes les options viennent de là.
+- Commande `/config` dans la CLI pour afficher la config active.
+
+Points à noter sur la validation :
+- `extra="forbid"` : si on tape `modl:` au lieu de `model:`, on a
+  une erreur claire au lieu d'un comportement silencieux.
+- Les bornes sont vérifiées : `temperature` doit être entre 0 et 2,
+  `top_p` entre 0 et 1, etc.
+- Les erreurs sont formatées lisiblement, pas du Pydantic brut.
+
+### Niveau 2 — Modelfile Ollama
+
+- `Modelfile` à la racine : crée un modèle dérivé `atlas` basé sur
+  `llama3.2:3b` avec un system prompt et des paramètres figés.
+- La CLI pointe vers `atlas` via `config/atlas.yaml`.
+
+```bash
+ollama create atlas -f Modelfile
+ollama list  # → atlas apparaît dans la liste
+```
+
+## Décisions architecturales
+
+Documentées dans `docs/architecture.md`. Résumé :
+
+**Le system prompt vit à deux endroits**, volontairement :
+- dans le Modelfile, comme défense en profondeur si quelqu'un utilise
+  `ollama run atlas` directement sans notre CLI ;
+- dans le YAML applicatif, pour itérer rapidement sans recréer le modèle.
+  Quand la CLI envoie son propre system message, celui-ci écrase le
+  Modelfile pour la session (comportement normal d'Ollama).
+
+**Divergence possible** : un user averti peut bypasser la CLI.
+Pour un prototype c'est OK, en prod il faudrait figer le Modelfile
+comme source unique.
+
+## Tests
+
+5 nouveaux tests dans `tests/test_config.py` :
+- chargement correct du YAML
+- défauts appliqués si fichier absent
+- erreur claire sur température hors borne
+- erreur sur section inconnue (faute de frappe)
+- erreur sur top_k négatif
+
+## Script de bootstrap
+
+`scripts/bootstrap.bat` crée le modèle `atlas` dans Ollama s'il n'existe
+pas. Utile pour un premier setup sur une nouvelle machine.
+
+## Ce qui n'a pas été fait
+
+- Le bonus LoRA Colab (fine-tuning sur dataset métier). Pas le temps
+  sur une journée, et pas critique pour le critère d'acceptation.
